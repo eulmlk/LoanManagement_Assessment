@@ -21,13 +21,14 @@ var (
 	ErrInvalidUsernameEmailPassword = errors.New("incorrect username, email or password")
 	ErrUserNotFoundByID             = errors.New("user with the given ID not found")
 	ErrUserNotFoundByEmail          = errors.New("user with the given email not found")
+	ErrInvalidID                    = errors.New("invalid ID")
 )
 
 func GetStatus(Err error) int {
 	switch Err {
 	case ErrUsernameAlreadyExists, ErrEmailAlreadyExists:
 		return http.StatusConflict
-	case ErrInvalidUsernameLength, ErrInvalidUsernameChars, ErrInvalidEmailLength, ErrInvalidEmailFormat, ErrWeakPasswordLength, ErrWeakPasswordUpper, ErrWeakPasswordLower, ErrWeakPasswordNumber, ErrWeakPasswordSpecial, ErrInvalidUsernameEmailPassword:
+	case ErrInvalidUsernameLength, ErrInvalidUsernameChars, ErrInvalidEmailLength, ErrInvalidEmailFormat, ErrWeakPasswordLength, ErrWeakPasswordUpper, ErrWeakPasswordLower, ErrWeakPasswordNumber, ErrWeakPasswordSpecial, ErrInvalidUsernameEmailPassword, ErrInvalidID:
 		return http.StatusBadRequest
 	case ErrInvalidToken:
 		return http.StatusUnauthorized

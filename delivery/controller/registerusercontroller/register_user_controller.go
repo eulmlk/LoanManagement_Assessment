@@ -5,6 +5,7 @@ import (
 	"loans/usecase/registeruserusecase"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -72,6 +73,8 @@ func (r *RegisterUserController) RegisterUser(ctx *gin.Context) {
 		FirstName: request.FirstName,
 		LastName:  request.LastName,
 		Bio:       request.Bio,
+		Role:      "user",
+		JoinedAt:  time.Now(),
 	}
 
 	err = r.usecase.RegisterUser(user)

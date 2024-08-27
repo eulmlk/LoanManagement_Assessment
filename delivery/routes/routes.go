@@ -5,6 +5,7 @@ import (
 	"loans/delivery/controller/forgotpasswordcontroller"
 	"loans/delivery/controller/loginusercontroller"
 	"loans/delivery/controller/passwordresetcontroller"
+	"loans/delivery/controller/profilecontroller"
 	"loans/delivery/controller/registerusercontroller"
 	"loans/delivery/controller/tokenrefreshcontroller"
 	"loans/delivery/controller/verifyusercontroller"
@@ -14,6 +15,7 @@ import (
 	"loans/usecase/forgotpasswordusecase"
 	"loans/usecase/loginuserusecase"
 	"loans/usecase/passwordresetusecase"
+	"loans/usecase/profileusecase"
 	"loans/usecase/registeruserusecase"
 	"loans/usecase/tokenrefreshusecase"
 	"loans/usecase/verifyuserusecase"
@@ -44,6 +46,7 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	tokenRefreshUsecase := tokenrefreshusecase.NewTokenRefreshUsecase(userRepo, tokenRepo)
 	forgotPasswordUsecase := forgotpasswordusecase.NewForgotPasswordUsecase(userRepo)
 	passwordResetUsecase := passwordresetusecase.NewPasswordResetUsecase(userRepo)
+	profileUsecase := profileusecase.NewProfileUseCase(userRepo)
 
 	// Controllers
 	registerUserController := registerusercontroller.NewRegisterUserController(registerUserUsecase)
@@ -52,6 +55,7 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	tokenRefreshController := tokenrefreshcontroller.NewTokenRefreshController(tokenRefreshUsecase)
 	forgotPasswordController := forgotpasswordcontroller.NewForgotPasswordController(forgotPasswordUsecase)
 	passwordResetController := passwordresetcontroller.NewPasswordResetController(passwordResetUsecase)
+	profileController := profilecontroller.NewProfileController(profileUsecase)
 
 	// Public routes
 	publicRoutes := router.Group("/")
@@ -61,10 +65,19 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 		publicRoutes.POST("/users/login", loginUserController.LoginUser)
 		publicRoutes.POST("/users/password-reset", forgotPasswordController.ForgotPassword)
 		publicRoutes.GET("/users/password-update", passwordResetController.ResetPassword)
+		publicRoutes.GET("/users/profile/:id", profileController.GetProfile)
 	}
 
 	// Refresh token route
 	router.POST("/users/refresh-token", middlewares.AuthMiddleware("refresh"), tokenRefreshController.RefreshToken)
+
+	// Private routes
+	privateRoutes := router.Group("/")
+	privateRoutes.Use(middlewares.AuthMiddleware("access"))
+	{
+		privateRoutes.GET("/users/profile", profileController.GetMyProfile)
+		privateRoutes.PATCH("/users/profile", profileController.UpdateProfile)
+	}
 
 	return router
 }
