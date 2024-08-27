@@ -23,6 +23,12 @@ type RegisterClaims struct {
 	jwt.StandardClaims
 }
 
+type ResetClaims struct {
+	UserID      string `json:"id"`
+	NewPassword string `json:"new_password"`
+	jwt.StandardClaims
+}
+
 func (c *LoginClaims) Valid() error {
 	return c.StandardClaims.Valid()
 }
@@ -31,12 +37,16 @@ func (c *RegisterClaims) Valid() error {
 	return c.StandardClaims.Valid()
 }
 
+func (c *ResetClaims) Valid() error {
+	return c.StandardClaims.Valid()
+}
+
 func (c *LoginClaims) SetExpiry() {
 	var expiry time.Duration
 	if c.Type == "refresh" {
 		expiry = time.Hour * 24 * 7
 	} else {
-		expiry = time.Minute * 15
+		expiry = time.Minute * 5
 	}
 
 	c.ExpiresAt = time.Now().Add(expiry).Unix()
@@ -44,6 +54,10 @@ func (c *LoginClaims) SetExpiry() {
 
 func (c *RegisterClaims) SetExpiry() {
 	c.ExpiresAt = time.Now().Add(time.Hour * 24).Unix()
+}
+
+func (c *ResetClaims) SetExpiry() {
+	c.ExpiresAt = time.Now().Add(time.Hour).Unix()
 }
 
 func (c *LoginClaims) GetSecretKey() []byte {
@@ -56,4 +70,8 @@ func (c *LoginClaims) GetSecretKey() []byte {
 
 func (c *RegisterClaims) GetSecretKey() []byte {
 	return []byte("my-register-secret-key")
+}
+
+func (c *ResetClaims) GetSecretKey() []byte {
+	return []byte("my-reset-secret-key")
 }

@@ -19,6 +19,8 @@ var (
 	ErrWeakPasswordSpecial          = errors.New("password must contain at least one special character")
 	ErrInvalidToken                 = errors.New("the token is invalid")
 	ErrInvalidUsernameEmailPassword = errors.New("incorrect username, email or password")
+	ErrUserNotFoundByID             = errors.New("user with the given ID not found")
+	ErrUserNotFoundByEmail          = errors.New("user with the given email not found")
 )
 
 func GetStatus(Err error) int {
@@ -29,6 +31,8 @@ func GetStatus(Err error) int {
 		return http.StatusBadRequest
 	case ErrInvalidToken:
 		return http.StatusUnauthorized
+	case ErrUserNotFoundByID, ErrUserNotFoundByEmail:
+		return http.StatusNotFound
 	default:
 		return http.StatusInternalServerError
 	}

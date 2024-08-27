@@ -6,7 +6,7 @@ import (
 
 	"loans/config"
 	"loans/domain"
-	"loans/usecase/loginuserusecase.go"
+	"loans/usecase/loginuserusecase"
 
 	"github.com/gin-gonic/gin"
 )

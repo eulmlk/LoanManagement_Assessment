@@ -5,6 +5,7 @@ import (
 	"loans/domain"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -18,51 +19,47 @@ func NewUserRepository(database *mongo.Database) *UserRepository {
 	}
 }
 
-func (u *UserRepository) InsertUser(User *domain.User) error {
-	_, err := u.UserCollection.InsertOne(context.Background(), User)
+func (u *UserRepository) InsertUser(user *domain.User) error {
+	_, err := u.UserCollection.InsertOne(context.Background(), user)
 	return err
 }
 
-func (u *UserRepository) GetUserByID(ID string) (*domain.User, error) {
-	filter := bson.M{"_id": ID}
+func (u *UserRepository) GetUserByID(id primitive.ObjectID) (*domain.User, error) {
+	filter := bson.M{"_id": id}
 	user := &domain.User{}
 
 	err := u.UserCollection.FindOne(context.Background(), filter).Decode(user)
 	return user, err
 }
 
-func (u *UserRepository) GetUserByUsername(Username string) (*domain.User, error) {
-	filter := bson.M{"username": Username}
+func (u *UserRepository) GetUserByUsername(username string) (*domain.User, error) {
+	filter := bson.M{"username": username}
 	user := &domain.User{}
 
 	err := u.UserCollection.FindOne(context.Background(), filter).Decode(user)
 	return user, err
 }
 
-func (u *UserRepository) GetUserByEmail(Email string) (*domain.User, error) {
-	filter := bson.M{"email": Email}
+func (u *UserRepository) GetUserByEmail(email string) (*domain.User, error) {
+	filter := bson.M{"email": email}
 	user := &domain.User{}
 
 	err := u.UserCollection.FindOne(context.Background(), filter).Decode(user)
 	return user, err
 }
 
-func (u *UserRepository) UpdateUser(User *domain.User) error {
-	filter := bson.M{"_id": User.ID}
+func (u *UserRepository) UpdateUser(id primitive.ObjectID, userData bson.M) error {
+	filter := bson.M{"_id": id}
 	update := bson.M{
-		"$set": bson.M{
-			"first_name": User.FirstName,
-			"last_name":  User.LastName,
-			"bio":        User.Bio,
-		},
+		"$set": userData,
 	}
 
 	_, err := u.UserCollection.UpdateOne(context.Background(), filter, update)
 	return err
 }
 
-func (u *UserRepository) DeleteUser(ID string) error {
-	filter := bson.M{"_id": ID}
+func (u *UserRepository) DeleteUser(id string) error {
+	filter := bson.M{"_id": id}
 	_, err := u.UserCollection.DeleteOne(context.Background(), filter)
 	return err
 }
