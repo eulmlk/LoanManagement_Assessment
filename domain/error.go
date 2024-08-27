@@ -24,6 +24,7 @@ var (
 	ErrInvalidID                    = errors.New("invalid ID")
 	ErrAlreadyHasLoan               = errors.New("user already has a loan")
 	ErrInvalidUserID                = errors.New("invalid user ID")
+	ErrInvalidLoanID                = errors.New("invalid loan ID")
 	ErrLoanNotFoundByUserID         = errors.New("this user does not have a loan")
 	ErrOnlyRootCanPromote           = errors.New("only root can promote")
 	ErrAlreadyPromoted              = errors.New("this user is already an admin")
@@ -35,19 +36,23 @@ var (
 	ErrOnlyAdminCanDelete           = errors.New("only an admin can delete other users")
 	ErrOnlyRootCanDelete            = errors.New("only root can delete admin users")
 	ErrCantDeleteRoot               = errors.New("cannot delete root user")
+	ErrOnlyAdminCanApprove          = errors.New("only an admin can approve or reject loans")
+	ErrLoanAlreadyApproved          = errors.New("loan has already been approved or rejected")
+	ErrLoanNotFoundByID             = errors.New("loan with the given ID not found")
+	ErrOnlyAdminCanViewLoans        = errors.New("only an admin can view all loans")
 )
 
 func GetStatus(Err error) int {
 	switch Err {
-	case ErrUsernameAlreadyExists, ErrEmailAlreadyExists, ErrAlreadyHasLoan, ErrAlreadyPromoted, ErrAlreadyDemoted:
+	case ErrUsernameAlreadyExists, ErrEmailAlreadyExists, ErrAlreadyHasLoan, ErrAlreadyPromoted, ErrAlreadyDemoted, ErrLoanAlreadyApproved:
 		return http.StatusConflict
-	case ErrInvalidUsernameLength, ErrInvalidUsernameChars, ErrInvalidEmailLength, ErrInvalidEmailFormat, ErrWeakPasswordLength, ErrWeakPasswordUpper, ErrWeakPasswordLower, ErrWeakPasswordNumber, ErrWeakPasswordSpecial, ErrInvalidUsernameEmailPassword, ErrInvalidID, ErrInvalidUserID, ErrInvalidIDPromote, ErrInvalidUserIDDelete:
+	case ErrInvalidUsernameLength, ErrInvalidUsernameChars, ErrInvalidEmailLength, ErrInvalidEmailFormat, ErrWeakPasswordLength, ErrWeakPasswordUpper, ErrWeakPasswordLower, ErrWeakPasswordNumber, ErrWeakPasswordSpecial, ErrInvalidUsernameEmailPassword, ErrInvalidID, ErrInvalidUserID, ErrInvalidIDPromote, ErrInvalidUserIDDelete, ErrInvalidLoanID:
 		return http.StatusBadRequest
 	case ErrInvalidToken:
 		return http.StatusUnauthorized
-	case ErrUserNotFoundByID, ErrUserNotFoundByEmail, ErrLoanNotFoundByUserID, ErrPageNotFound:
+	case ErrUserNotFoundByID, ErrUserNotFoundByEmail, ErrLoanNotFoundByUserID, ErrPageNotFound, ErrLoanNotFoundByID:
 		return http.StatusNotFound
-	case ErrOnlyRootCanPromote, ErrOnlyAdminCanViewAllUsers, ErrOnlyAdminCanDelete, ErrOnlyRootCanDelete, ErrCantDeleteRoot:
+	case ErrOnlyRootCanPromote, ErrOnlyAdminCanViewAllUsers, ErrOnlyAdminCanDelete, ErrOnlyRootCanDelete, ErrCantDeleteRoot, ErrOnlyAdminCanApprove, ErrOnlyAdminCanViewLoans:
 		return http.StatusForbidden
 	default:
 		return http.StatusInternalServerError

@@ -42,7 +42,10 @@ func (l *LoanRepository) GetLoanByUserID(userID primitive.ObjectID) (*domain.Loa
 }
 
 func (l *LoanRepository) UpdateLoan(id primitive.ObjectID, loanData bson.M) error {
-	_, err := l.LoanCollection.UpdateOne(context.Background(), id, loanData)
+	update := bson.M{"$set": loanData}
+	filter := bson.M{"_id": id}
+
+	_, err := l.LoanCollection.UpdateOne(context.Background(), filter, update)
 	return err
 }
 
@@ -90,4 +93,9 @@ func (l *LoanRepository) GetLoans(page, limit int) ([]*domain.Loan, error) {
 	}
 
 	return loans, nil
+}
+
+func (l *LoanRepository) GetLoanCount() (int, error) {
+	count, err := l.LoanCollection.CountDocuments(context.TODO(), bson.M{})
+	return int(count), err
 }

@@ -3,6 +3,7 @@ package routes
 import (
 	"loans/bootstrap"
 	"loans/delivery/controller/loan/applyloancontroller"
+	"loans/delivery/controller/loan/approveloancontroller"
 	"loans/delivery/controller/loan/loanstatuscontroller"
 	"loans/delivery/controller/user/alluserscontroller"
 	"loans/delivery/controller/user/deleteusercontroller"
@@ -19,6 +20,7 @@ import (
 	"loans/repository/tokenrepository"
 	"loans/repository/userrepository"
 	"loans/usecase/loan/applyloanusecase"
+	"loans/usecase/loan/approveloanusecase"
 	"loans/usecase/loan/loanstatususecase"
 	"loans/usecase/user/addrootusecase"
 	"loans/usecase/user/allusersusecase"
@@ -66,6 +68,7 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	promoteUserUsecase := promoteuserusecase.NewPromoteUserUsecase(userRepo)
 	allUsersUsecase := allusersusecase.NewAllUsersUsecase(userRepo)
 	deleteUserUsecase := deleteuserusecase.NewDeleteUserUsecase(userRepo)
+	approveLoanUsecase := approveloanusecase.NewApproveLoanUsecase(userRepo, loanRepo)
 
 	// Add root user
 	err = addRootUsecase.AddRoot()
@@ -86,6 +89,7 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	promoteUserController := promoteusercontroller.NewPromoteUserController(promoteUserUsecase)
 	allUsersController := alluserscontroller.NewAllUsersController(allUsersUsecase)
 	deleteUserController := deleteusercontroller.NewDeleteUserController(deleteUserUsecase)
+	approveLoanController := approveloancontroller.NewApproveLoanController(approveLoanUsecase)
 
 	// Public routes
 	publicRoutes := router.Group("/")
@@ -112,6 +116,7 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 		privateRoutes.POST("admin/users/promote", promoteUserController.PromoteUser)
 		privateRoutes.GET("admin/users", allUsersController.GetUsers)
 		privateRoutes.DELETE("admin/users/:id", deleteUserController.DeleteUser)
+		privateRoutes.PATCH("admin/loans/:id/status", approveLoanController.ApproveLoan)
 	}
 
 	return router
