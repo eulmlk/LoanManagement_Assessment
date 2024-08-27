@@ -2,23 +2,35 @@ package routes
 
 import (
 	"loans/bootstrap"
-	"loans/delivery/controller/forgotpasswordcontroller"
-	"loans/delivery/controller/loginusercontroller"
-	"loans/delivery/controller/passwordresetcontroller"
-	"loans/delivery/controller/profilecontroller"
-	"loans/delivery/controller/registerusercontroller"
-	"loans/delivery/controller/tokenrefreshcontroller"
-	"loans/delivery/controller/verifyusercontroller"
+	"loans/delivery/controller/loan/applyloancontroller"
+	"loans/delivery/controller/loan/loanstatuscontroller"
+	"loans/delivery/controller/user/alluserscontroller"
+	"loans/delivery/controller/user/deleteusercontroller"
+	"loans/delivery/controller/user/forgotpasswordcontroller"
+	"loans/delivery/controller/user/loginusercontroller"
+	"loans/delivery/controller/user/passwordresetcontroller"
+	"loans/delivery/controller/user/profilecontroller"
+	"loans/delivery/controller/user/promoteusercontroller"
+	"loans/delivery/controller/user/registerusercontroller"
+	"loans/delivery/controller/user/tokenrefreshcontroller"
+	"loans/delivery/controller/user/verifyusercontroller"
 	"loans/delivery/middlewares"
+	"loans/repository/loanrepository"
 	"loans/repository/tokenrepository"
 	"loans/repository/userrepository"
-	"loans/usecase/forgotpasswordusecase"
-	"loans/usecase/loginuserusecase"
-	"loans/usecase/passwordresetusecase"
-	"loans/usecase/profileusecase"
-	"loans/usecase/registeruserusecase"
-	"loans/usecase/tokenrefreshusecase"
-	"loans/usecase/verifyuserusecase"
+	"loans/usecase/loan/applyloanusecase"
+	"loans/usecase/loan/loanstatususecase"
+	"loans/usecase/user/addrootusecase"
+	"loans/usecase/user/allusersusecase"
+	"loans/usecase/user/deleteuserusecase"
+	"loans/usecase/user/forgotpasswordusecase"
+	"loans/usecase/user/loginuserusecase"
+	"loans/usecase/user/passwordresetusecase"
+	"loans/usecase/user/profileusecase"
+	"loans/usecase/user/promoteuserusecase"
+	"loans/usecase/user/registeruserusecase"
+	"loans/usecase/user/tokenrefreshusecase"
+	"loans/usecase/user/verifyuserusecase"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,6 +50,7 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	// Repositories
 	userRepo := userrepository.NewUserRepository(database)
 	tokenRepo := tokenrepository.NewTokenRepository(database)
+	loanRepo := loanrepository.NewLoanRepository(database)
 
 	// Usecases
 	registerUserUsecase := registeruserusecase.NewRegisterUserUseCase(userRepo)
@@ -47,6 +60,18 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	forgotPasswordUsecase := forgotpasswordusecase.NewForgotPasswordUsecase(userRepo)
 	passwordResetUsecase := passwordresetusecase.NewPasswordResetUsecase(userRepo)
 	profileUsecase := profileusecase.NewProfileUseCase(userRepo)
+	applyLoanUsecase := applyloanusecase.NewApplyLoanUseCase(userRepo, loanRepo)
+	loanStatusUsecase := loanstatususecase.NewLoanStatusUseCase(userRepo, loanRepo)
+	addRootUsecase := addrootusecase.NewAddRootUsecase(userRepo)
+	promoteUserUsecase := promoteuserusecase.NewPromoteUserUsecase(userRepo)
+	allUsersUsecase := allusersusecase.NewAllUsersUsecase(userRepo)
+	deleteUserUsecase := deleteuserusecase.NewDeleteUserUsecase(userRepo)
+
+	// Add root user
+	err = addRootUsecase.AddRoot()
+	if err != nil {
+		panic(err)
+	}
 
 	// Controllers
 	registerUserController := registerusercontroller.NewRegisterUserController(registerUserUsecase)
@@ -56,6 +81,11 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	forgotPasswordController := forgotpasswordcontroller.NewForgotPasswordController(forgotPasswordUsecase)
 	passwordResetController := passwordresetcontroller.NewPasswordResetController(passwordResetUsecase)
 	profileController := profilecontroller.NewProfileController(profileUsecase)
+	applyLoanController := applyloancontroller.NewApplyLoanController(applyLoanUsecase)
+	loanStatusController := loanstatuscontroller.NewLoanStatusController(loanStatusUsecase)
+	promoteUserController := promoteusercontroller.NewPromoteUserController(promoteUserUsecase)
+	allUsersController := alluserscontroller.NewAllUsersController(allUsersUsecase)
+	deleteUserController := deleteusercontroller.NewDeleteUserController(deleteUserUsecase)
 
 	// Public routes
 	publicRoutes := router.Group("/")
@@ -77,6 +107,11 @@ func InitRoutes(client *mongo.Client) *gin.Engine {
 	{
 		privateRoutes.GET("/users/profile", profileController.GetMyProfile)
 		privateRoutes.PATCH("/users/profile", profileController.UpdateProfile)
+		privateRoutes.POST("/loans", applyLoanController.ApplyLoan)
+		privateRoutes.GET("/loans", loanStatusController.GetLoanStatus)
+		privateRoutes.POST("admin/users/promote", promoteUserController.PromoteUser)
+		privateRoutes.GET("admin/users", allUsersController.GetUsers)
+		privateRoutes.DELETE("admin/users/:id", deleteUserController.DeleteUser)
 	}
 
 	return router

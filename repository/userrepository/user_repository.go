@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository struct {
@@ -58,8 +59,48 @@ func (u *UserRepository) UpdateUser(id primitive.ObjectID, userData bson.M) erro
 	return err
 }
 
-func (u *UserRepository) DeleteUser(id string) error {
+func (u *UserRepository) DeleteUser(id primitive.ObjectID) error {
 	filter := bson.M{"_id": id}
 	_, err := u.UserCollection.DeleteOne(context.Background(), filter)
 	return err
+}
+
+func (u *UserRepository) GetUsers(page, limit int) ([]*domain.User, error) {
+	skip := (page - 1) * limit
+
+	var users []*domain.User
+
+	findOptions := options.Find()
+	findOptions.SetSkip(int64(skip))
+	findOptions.SetLimit(int64(limit))
+
+	cursor, err := u.UserCollection.Find(context.TODO(), bson.M{}, findOptions)
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(context.Background())
+
+	for cursor.Next(context.Background()) {
+		user := &domain.User{}
+
+		err := cursor.Decode(user)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	err = cursor.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func (u *UserRepository) GetUserCount() (int, error) {
+	count, err := u.UserCollection.CountDocuments(context.Background(), bson.M{})
+	return int(count), err
 }
